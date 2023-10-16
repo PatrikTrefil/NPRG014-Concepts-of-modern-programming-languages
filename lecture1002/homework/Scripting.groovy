@@ -14,10 +14,31 @@
 // Use the tricks we learnt about scripting, passing parameters to GroovyShell through binding, properties, 
 // closure delegates, the 'object.with(Closure)' method, etc.
 
-
 List<String> processNumbers(List<Operation> userInput, List<String> numbers) {
-    //Function that runs the provided operations on the provided collection of numbers. Needs to be implemented.
-    // ...
+    // create a single shared binding
+    Binding binding = new Binding();
+    // create s single immutable shared delegate for the operations
+    def delegate = [LENGTH: numbers.size()].asImmutable();
+    def result = numbers;
+    for (Operation operation : userInput) {
+        binding["delegate"] = delegate;
+        binding["data"] = result;
+        GroovyShell shell = new GroovyShell(binding);
+        def script = """
+Closure filter = ${operation.command}
+filter.resolveStrategy = Closure.DELEGATE_ONLY
+filter.delegate = delegate
+"""
+        if (operation.type == OperationType.FILTER) {
+            script += "data.findAll(filter)";
+        } else if (operation.type == OperationType.TRANSFORMATION) {
+            script += "data.collect(filter)";
+        } else {
+            throw new Exception("Unknown operation type: ${operation.type}");
+        }
+        result = shell.evaluate(script) ;
+    }
+    return result;
 }
 
 
