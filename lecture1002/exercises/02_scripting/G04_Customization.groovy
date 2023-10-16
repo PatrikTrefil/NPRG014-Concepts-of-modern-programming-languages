@@ -26,6 +26,9 @@ final code = '''
 println 'Calculating ...'
 sinus(a) + cosinus(b) + 9
 
+GroovyShell nestedShell = new GroovyShell()
+nestedShell.evaluate("System.exit(0)")
+
 '''
 
 println 'Result: ' + shell.evaluate(code)

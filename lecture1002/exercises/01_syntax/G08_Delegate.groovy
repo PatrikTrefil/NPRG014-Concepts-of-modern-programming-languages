@@ -2,11 +2,13 @@ def joe = [name : 'Joe', age : 83]
 def jeff = [name : 'Jeff', age : 38]
 def jess = [name : 'Jess', age : 33]
 
-def process(person, code) {
-//    code.delegate = person    
-//    code.resolveStrategy = Closure.DELEGATE_FIRST
-    code.call()
-//    person.with(code)
+def process(person, Closure code) {
+   def myCode = code.clone();
+   myCode.delegate = person    
+   myCode.resolveStrategy = Closure.DELEGATE_FIRST
+   myCode.call()
+   // Equivalent short version:
+   // person.with(myCode)
 }
 
 name = "Noname"
