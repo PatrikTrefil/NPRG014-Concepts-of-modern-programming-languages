@@ -18,7 +18,7 @@ println "Fresh employees  ${company.findAllFreshEmployees().name}"
 
 //TASK Describe how the dynamic queries work
 //TASK Enable search for employees with names starting with the letter 'M'
-//println "M-employees ${company.findAllMEmployees()*.name}"
+println "M-employees ${company.findAllMEmployees()*.name}"
 
 
 class Company {
@@ -33,6 +33,9 @@ class Company {
             }
             if (action.toLowerCase() in ['junior', 'fresh']) {
                 return employees.findAll {it.age <= 30}
+            }
+            if (action.toLowerCase() == "m") {
+                return employees.findAll {it.name.startsWith('M')}
             }
         }
 

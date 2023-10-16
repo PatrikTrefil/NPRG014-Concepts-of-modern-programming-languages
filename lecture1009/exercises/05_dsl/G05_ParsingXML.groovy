@@ -44,7 +44,7 @@ assert 'co-re-co-re-co-re' == records.car.children().collect { it.name()[0..1] }
 assert 'co-re-co-re-co-re' == records.car.'*'.collect { it.name()[0..1] }.join('-')
 
 //TASK list all countries of all cars separated by colon
-//assert 'Australia:Isle of Man:France' == 
+assert 'Australia:Isle of Man:France' == records.car.country*.text().join(":")
 
 //TASK list all countries of all cars separated by colon where the year of car construction is older than 1970
 //assert 'Isle of Man:France' == 

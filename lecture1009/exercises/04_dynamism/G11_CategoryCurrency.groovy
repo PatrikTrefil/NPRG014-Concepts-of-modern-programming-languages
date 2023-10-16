@@ -1,3 +1,5 @@
+import groovyjarjarantlr4.v4.codegen.model.LeftUnfactoredRuleFunction
+
 class Money {
     Integer amount
     String currency
@@ -14,6 +16,12 @@ class Money {
 
 class MoneyCategory {
 //TASK Define methods of the MoneyCategory class so that the code below passes
+    static Money getEur(Integer amount) {
+        [amount: amount, currency: "EUR"]
+    }
+    static Money getUsd(int amount) {
+        new Money(amount: amount, currency: "USD")
+    }
 }
 
 use(MoneyCategory) {
