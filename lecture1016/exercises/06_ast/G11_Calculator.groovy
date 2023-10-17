@@ -36,7 +36,12 @@ public class UnsupportedTransformation implements ASTTransformation {
         // http://docs.groovy-lang.org/docs/groovy-latest/html/api/org/codehaus/groovy/ast/expr/package-summary.html
         // http://docs.groovy-lang.org/docs/groovy-latest/html/api/org/codehaus/groovy/ast/stmt/package-summary.html
         // http://docs.groovy-lang.org/docs/groovy-latest/html/api/org/codehaus/groovy/ast/tools/package-summary.html        
-        // http://docs.groovy-lang.org/docs/groovy-latest/html/api/org/codehaus/groovy/ast/tools/GeneralUtils.html        
+        // http://docs.groovy-lang.org/docs/groovy-latest/html/api/org/codehaus/groovy/ast/tools/GeneralUtils.html
+        def methodNode = astNodes[1] as MethodNode
+        if (methodNode.code != null)  {
+            source.addError(new SyntaxException("The method ${methodNode.name} is declared as @Unsupported but has nonempty body", methodNode.lineNumber, methodNode.columnNumber))
+        }
+        // TODO: unfinished
     }
 }
 

@@ -1,3 +1,5 @@
+import org.codehaus.groovy.ast.stmt.Statement
+
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -30,7 +32,16 @@ public @interface Zero {}
 public class ZeroTransformation implements ASTTransformation {
 
     public void visit(ASTNode[] astNodes, SourceUnit source) {
-
+        def annotatedClass = astNodes[1] as ClassNode
+        def res = new AstBuilder().buildFromString("0")
+        annotatedClass.addMethod(
+                "getZero",
+                Opcodes.ACC_PUBLIC,
+                ClassHelper.Integer_TYPE,
+                [] as Parameter[],
+                [] as ClassNode[],
+                res[0] as Statement
+        )
     }
 }
 
