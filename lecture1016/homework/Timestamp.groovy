@@ -1,4 +1,8 @@
 // 2023/2024
+
+import org.codehaus.groovy.ast.stmt.Statement
+import org.codehaus.groovy.control.CompilePhase
+
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -7,6 +11,7 @@ import org.codehaus.groovy.ast.expr.*
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.AnnotationNode
 import org.codehaus.groovy.ast.Parameter
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
@@ -16,6 +21,7 @@ import org.codehaus.groovy.ast.stmt.TryCatchStatement
 import static org.codehaus.groovy.control.CompilePhase.SEMANTIC_ANALYSIS
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.ast.stmt.ReturnStatement
 import org.codehaus.groovy.syntax.SyntaxException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import groovyjarjarasm.asm.Opcodes
@@ -59,7 +65,51 @@ public class CreatedAtTransformation implements ASTTransformation {
         // ClassNode.addMethod() accepts a BlockStatement
         
         //TODO Implement this method
-        
+        def annotationNode = astNodes[0] as AnnotationNode
+        def classNode = astNodes[1] as ClassNode
+
+        def astBuilder = new AstBuilder()
+        // create timestamp backing field
+        classNode.addField(
+                "timestamp",
+                Opcodes.ACC_PRIVATE,
+                ClassHelper.long_TYPE,
+                (
+                        (astBuilder.buildFromString("System.currentTimeMillis()")[0] as BlockStatement)
+                            .statements[0] as ReturnStatement
+                ).getExpression()
+        )
+
+        // make all existing methods update the timestamp when needed
+        for (method in classNode.getMethods()) {
+            (method.code as BlockStatement).statements.add(0, astBuilder.buildFromString(
+                CompilePhase.SEMANTIC_ANALYSIS, // necessary to prevent return statement from being added
+         """
+                if (System.currentTimeMillis() - this.timestamp > 1000) {
+                    this.timestamp = System.currentTimeMillis();
+                }
+                """
+            )[0] as BlockStatement)
+        }
+        // add clearTimestamp method
+        classNode.addMethod(
+                "clearTimestamp",
+                Opcodes.ACC_PUBLIC,
+                ClassHelper.VOID_TYPE,
+                [] as Parameter[],
+                [] as ClassNode[],
+                astBuilder.buildFromString(CompilePhase.SEMANTIC_ANALYSIS, "this.timestamp = 0")[0] as Statement
+        )
+        // add timestamp getter with provided name
+        classNode.addMethod(
+                (annotationNode.members.name as ConstantExpression).value as String,
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
+                ClassHelper.long_TYPE,
+                [] as Parameter[],
+                [] as ClassNode[],
+                astBuilder.buildFromString("this.timestamp")[0] as Statement
+        )
+
     }
 }
 
@@ -75,7 +125,7 @@ class Calculator {
 
     def subtract(int value) {
         sum -= value
-    }
+    } 
 }
 
 new Calculator()
