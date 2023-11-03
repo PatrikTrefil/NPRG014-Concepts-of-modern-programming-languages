@@ -11,7 +11,7 @@ import java.io.PrintStream
 
 class Logger(where: PrintStream):
 	def log(msg: String): Unit =
-		where.println(msg)
+		where.println(">> " + msg)
 
 
 /* ASSIGNMENT:
