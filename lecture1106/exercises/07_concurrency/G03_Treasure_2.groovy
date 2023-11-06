@@ -2,6 +2,7 @@
 import java.util.concurrent.*
 
 class TreasureBox {
+    def countDownLatch = new CountDownLatch(3)
     
     def treasure = "golden rings"
     
@@ -10,30 +11,34 @@ class TreasureBox {
     def key3=false
             
     def enterPrezidentKey(key) {
-        if (key == "1122") {
+        if (!key1 && key == "1122") {
            key1 = true
            println "Unlocking with the president key"
            Thread.sleep(1000)
+           countDownLatch.countDown()
         }
     }
 
     def enterPrimeMinisterKey(key) {
-        if (key == "1133") {
+        if (!key2 && key == "1133") {
            key2 = true
            println "Unlocking with the prime minister key"
-           Thread.sleep(1000)           
+           Thread.sleep(1000)
+            countDownLatch.countDown()
         }
     }
 
     def enterPoliceDirectorKey(key) {
-        if (key == "1144") {
+        if (!key3 && key == "1144") {
            key3 = true        
            println "Unlocking with the police director key"
-           Thread.sleep(1000)           
+           Thread.sleep(1000)
+            countDownLatch.countDown()
         }
     }
     
     def open() {
+        countDownLatch.await()
        if (key1 && key2 && key3) {
            println "Opening the box and showing " + this.treasure
        } else {
