@@ -24,7 +24,7 @@
 /*
     operator(inputs: [...], outputs: [...], stateObject: [key: value]) { a, b, c, d ->
         assert stateObject.key == value //access the state object through the key
-    
+
         bindOutput("something")  //output to the only output channel, if there's only one
         bindOutput(0, "something")  //output to the first output channel
         bindAllOutputs("something")  //output to all output channels
@@ -59,34 +59,53 @@ group.with {
     //input channels
     final parisEURPrices = new DataflowQueue()
     final viennaEURPrices = new DataflowQueue()
-    final frankfurtEURPrices = new DataflowQueue()    
+    final frankfurtEURPrices = new DataflowQueue()
     final chicagoUSDPrices = new DataflowQueue()
     final usd2eurRates = new DataflowQueue()
 
     //output channels
     final avgPrices = new DataflowQueue()
     final fiveDayAverages = new DataflowQueue()
-    
+
     //================================= do not modify above this point
-    
+
     //implement the three operators and utility intermediate channels here
 
+    //intermediate channels
+    final chicagoEURPrices = new DataflowQueue()
+    final parisEURPricesLatest = new DataflowQueue()
+    final avgPricesForFiveDayAvg = new DataflowQueue()
 
+    // Convert USD to EUR
+    operator(inputs: [chicagoUSDPrices, usd2eurRates], outputs: [chicagoEURPrices]) {usdPrice, rate ->
+        bindOutput(usdPrice * rate)
+    }
 
+    // If the price of Paris is 0, use the latest non-zero price
+    operator(inputs: [parisEURPrices], outputs: [parisEURPricesLatest], stateObject: [latestPrice: 0]) {parisPrice ->
+        if (parisPrice == 0) {
+            bindOutput(stateObject.latestPrice)
+        } else {
+            stateObject.latestPrice = parisPrice
+            bindOutput(parisPrice)
+        }
+    }
 
+    // Calculate the daily average price
+    operator(inputs: [parisEURPricesLatest, viennaEURPrices, frankfurtEURPrices, chicagoEURPrices], outputs: [avgPrices, avgPricesForFiveDayAvg]) {parisPrice, viennaPrice, frankfurtPrice, chicagoPrice ->
+        bindAllOutputs ((parisPrice + viennaPrice + frankfurtPrice + chicagoPrice) / 4)
+    }
 
+    // Calculate the five-day average price
+    operator(inputs: [avgPricesForFiveDayAvg], outputs: [fiveDayAverages], stateObject: [prices: []]) {avgPrice ->
+        stateObject.prices << avgPrice
+        if (stateObject.prices.size() > 5) {
+            stateObject.prices.remove(0)
+        }
+        bindOutput(stateObject.prices.sum() / stateObject.prices.size())
+    }
 
-
-
-
-
-
-
-
-
-
-
-    //================================= do not modify beyond this point    
+    //================================= do not modify beyond this point
 
 
     //Generate the input data streams from the dummy data
@@ -109,7 +128,7 @@ group.with {
     //Retrieve the results
     def results = task {
         def result = []
-        30.times {
+        30.times {counter ->
             result << (int) avgPrices.val
         }
         [dailyAveragesKey: result]
