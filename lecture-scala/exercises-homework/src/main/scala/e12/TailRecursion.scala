@@ -17,6 +17,11 @@ object TailRecursion:
       case _ :: rest => 1 + length(rest)
       case Nil => 0
 
+  def length2(list: List[String], currLength: Int = 0): Int =
+    list match
+      case _ :: rest => length2(rest, currLength + 1)
+      case Nil => currLength
+
 
   def main(args: Array[String]): Unit =
     val list = List("aa", "bb", "cc", "dd")
@@ -25,3 +30,4 @@ object TailRecursion:
     /* ASSIGNMENT:
      * Write a method length2 that has the same semantics of length but can be optimized using tail recursion.
      */
+    println(length2(list))

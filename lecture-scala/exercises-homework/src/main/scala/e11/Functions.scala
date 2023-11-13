@@ -10,9 +10,9 @@ object Functions:
 		else
 			val pivot = xs(xs.length / 2)
 			Array.concat(
-					sort(xs.filter(pivot.>)),
-					xs.filter(pivot.==),
-					sort(xs.filter(pivot.<))
+				sort(xs.filter(pivot.>)),
+				xs.filter(pivot.==),
+				sort(xs.filter(pivot.<))
 			)
 
 	def concatArray[T](items: Array[T], fcn: T => String) =
@@ -21,9 +21,19 @@ object Functions:
 		for (item <- items) do
 			bld.append(fcn(item))
 
-		bld.toString()	
+		bld.toString()
 
-	
+	def sort(xs: Array[Int], cmp: (Int, Int) => Int): Array[Int] =
+		if (xs.length <= 1) then
+			xs
+		else
+			val pivot = xs(xs.length / 2)
+			Array.concat(
+				  sort(xs.filter(cmp(_, pivot) < 0), cmp),
+				  xs.filter(pivot.==),
+				  sort(xs.filter(cmp(_,pivot) > 0), cmp)
+			)
+
 	def main(args: Array[String]): Unit =
 		val increase = (x: Int) => x + 9999
 
@@ -44,11 +54,14 @@ object Functions:
 		println(concatArray(otherNumbers, (_: Int) + " "))
 
 		/* ASSIGNMENT:
-		 * Write another sort function that will accept the comparison function, which takes two integers on input and returns one integer on output 
+		 * Write another sort function that will accept the comparison function, which takes two integers on input and returns one integer on output
 		 * (with the same semantics as the function compare in class Relational). Your sort function should use this compare method for comparison.
 		 * It will be used in the following way:
-		 * 
-     * val yetOtherNumbers = sort(Array(1,4,2,9,-1), _ - _)
+		 *
+		 * val yetOtherNumbers = sort(Array(1,4,2,9,-1), _ - _)
 		 * println(concatArray(yetOtherNumbers, conc))
 		 */
+
+		val yetOtherNumbers = sort(Array(1, 4, 2, 9, -1), _ - _)
+		println(concatArray(yetOtherNumbers, conc))
 
