@@ -1,5 +1,3 @@
-/* Uncomment this to finalize the code
-
 package h3
 
 import scala.collection.mutable.ListBuffer
@@ -17,7 +15,7 @@ class Property(val name: String, val func: () => Boolean)
 class Monitor[T]:
   val properties = ListBuffer.empty[Property]
 
-  // def property /* Add declaration here */
+  def property(propName: String)(formula: => Boolean): Unit =
     properties += Property(propName, () => formula)
 
   var eventsToBeProcessed = List[T]()
@@ -32,11 +30,23 @@ class Monitor[T]:
 
 
   def require(func: PartialFunction[T, Boolean]): Boolean =
-  /* Add body here
-   *
-   * to know whether a partial function is defined for a given event,
-   * use func.isDefinedAt(event).
-   */
+    while (eventsToBeProcessed.nonEmpty) {
+      // pop first event from the list
+      val event :: restOfEvents = eventsToBeProcessed
+      eventsToBeProcessed = restOfEvents
+      // if there is a partial function defined for the event, then call it
+      if func.isDefinedAt(event) then
+        return func(event)
+    }
+    // if there was no match for any event, the requirement is considered unfulfilled
+    false
+
+
+/* Add body here
+ *
+ * to know whether a partial function is defined for a given event,
+ * use func.isDefinedAt(event).
+ */
 
 
 class MyMonitor extends Monitor[Event] :
@@ -72,6 +82,12 @@ class MyMonitor extends Monitor[Event] :
     /* Add a property definition here which requires that the first command does not fail.
      * It should yield OK with the events listed in the main method.
      */
+    require {
+      case Command(c) =>
+        require {
+          case Succeed(`c`) => true
+        }
+    }
   }
 
 
@@ -87,5 +103,3 @@ object Checker:
 
     val monitor = new MyMonitor
     monitor.check(events)
-
- */
