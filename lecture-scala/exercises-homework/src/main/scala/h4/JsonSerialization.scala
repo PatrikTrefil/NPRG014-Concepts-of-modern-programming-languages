@@ -8,9 +8,41 @@ class PhoneNo(val prefix: Int, val number: Int)
 class Person(val firstName: String, val lastName: String, val phone: PhoneNo)
 class Address(val person: Person, val street: String, val city: String)
 
-// ... add the necessary classes
+trait JsonSerializer[T]:
+  def serialize(obj: T): String
 
-/*
+  extension (x: T)
+    def toJson: String = serialize(x)
+
+object JsonSerializer:
+  given strSerializer: JsonSerializer[String] with
+    def serialize(str: String): String = "\"" + str + "\""
+  given intSerializer: JsonSerializer[Int] with
+    def serialize(i: Int): String = i.toString
+  given listSerializer[T](using JsonSerializer[T]): JsonSerializer[List[T]] with
+    def serialize(list: List[T]): String = "[" + list.map(_.toJson).mkString(", ") + "]"
+  given mapSerializer[T](using JsonSerializer[T]): JsonSerializer[Map[String, T]] with
+    def serialize(map: Map[String, T]): String = "{" + map.map((k, v) => s""""$k": ${v.toJson}""").mkString(", ") + "}"
+
+object PhoneNo:
+  given JsonSerializer[PhoneNo] with
+    def serialize(phoneNo: PhoneNo): String =
+      import JsonSerializer.given
+      s"""{ "prefix": ${phoneNo.prefix.toJson}, "number": ${phoneNo.number.toJson} }"""
+
+object Person:
+  given JsonSerializer[Person] with
+    def serialize(person: Person): String =
+      import JsonSerializer.given
+      s"""{ "firstName": ${person.firstName.toJson}, "lastName": ${person.lastName.toJson}, "phone": ${person.phone.toJson} }"""
+
+object Address:
+  given JsonSerializer[Address] with
+    def serialize(address: Address): String =
+      import JsonSerializer.given
+      s"""{ "person": ${address.person.toJson}, "street": ${address.street.toJson}, "city": ${address.city.toJson} }"""
+
+
 object JsonSerializerTest:
   def main(args: Array[String]): Unit =
     import JsonSerializer.given
@@ -39,5 +71,3 @@ object JsonSerializerTest:
 
     val f = List(e1, e2)
     println(f.toJson) // [ { "person": { "firstName": "John", "lastName": "Doe", "phone": { "prefix": 1, "number": 123456 } }, "street": "Bugmore Lane 3", "city": "Lerfourche" }, { "person": { "firstName": "Jane", "lastName": "X", "phone": { "prefix": 420, "number": 345678 } }, "street": "West End Woods 1", "city": "Holmefefer" } ]
-
-*/
