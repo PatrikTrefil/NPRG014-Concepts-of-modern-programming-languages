@@ -1,3 +1,5 @@
+DescriptionUtils decorateObject
+
 Vect := Object clone do (
 	x := 0
 	y := 0
@@ -19,7 +21,8 @@ v1 println
  * Override the asString method such that println prints out the vector in form: "v(3,4)"
  */
 
-// v1 println // prints "v(3,4)" 
+v1 asString = method( "v(#{x},#{y})" interpolate )
+v1 println // prints "v(3,4)" 
 
  
 
@@ -29,8 +32,11 @@ v1 println
 /* ASSIGNMENT:
  * Create a function that will allow creating new vectors in the following way:
  */
- 
-// Vect with (7, 9) println
+Vect with := method(x, y, Vect clone do (
+	x := x
+	y := y
+)) 
+Vect with (7, 9) println
 
 
 
@@ -44,9 +50,13 @@ v1 println
  * d1 println // prints "d(3,4) = 5"
  * (d1 + 2) println // since d1 is a number, this prints out 7
  */
- 
-// d1 := v1 length2
-// d1 println // prints "d(3,4) = 5"
-// (d1 + 2) println // since d1 is a number, this prints out 7
+v1 length2 := method(
+	res := length clone
+	res asString = method( "d(#{v1 x},#{v1 y}) = #{v1 length}" interpolate)
+	res
+) 
+d1 := v1 length2
+d1 println // prints "d(3,4) = 5"
+(d1 + 2) println // since d1 is a number, this prints out 7
 
 
